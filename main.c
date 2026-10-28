@@ -323,6 +323,32 @@ void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_
     printf("\n[Успех]: Полный отчет о крафте сохранен в файл output.txt!\n");
 }
 
+//функции для работы с динамической картой
+
+//функции освобождения памяти двумерного массива
+void free_map(char **map, int height) {
+    if (map == NULL) return;
+    for (int i = 0; i < height; i++) {
+        if (map[i] != NULL) {
+            free(map[i]);
+        }
+    }
+    free(map);
+}
+
+//вывод динамической карты на экран
+void display_map(char **map, int width, int height, int hero_x, int hero_y) {
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            if (x== hero_x && y == hero_y) {
+                printf("@ "); //вывод героя поверх клетки
+            } else {
+                printf("%c ", map[y][x]);
+            }
+        }
+        printf("\n");
+    }
+}
 
 
   //ГЛАВНАЯ ФУНКЦИЯ
