@@ -245,10 +245,10 @@ void action_save_to_diary(const char *farmer_name, GameTime t, const int inv[], 
     printf("[Успех]: Запись красиво сохранена в файл diary.txt!\n");
 }
 
-//проверка рецептов крафта
+// проверка рецептов крафта
 void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size) {
     FILE *fin = fopen("input.txt", "r");
-    FILE *fout = fopen("output.txt", "w"); // w — создание и полная перезапись файла вывода
+    FILE *fout = fopen("output.txt", "w");
 
     if (fin == NULL) {
         printf("[Ошибка]: Входной файл рецептов input.txt не найден! Нечего обрабатывать.\n");
@@ -261,31 +261,27 @@ void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_
         return;
     }
 
-    // счет текущего количества ресурсов у игрока
     int player_resources[MAX_ITEMS] = {0};
     for (int i = 0; i < size; i++) {
         player_resources[inv[i]]++;
     }
 
-    char line[128];
+    
+    char line[128]; 
     printf("--- Проверка рецептов крафта ---\n");
 
-    //чтение input.txt построчно
     while (fgets(line, sizeof(line), fin)) {
-        //удаление технического переноса строки \n
         line[strcspn(line, "\n")] = '\0';
         if (strlen(line) == 0) continue;
 
         char recipe_name[MAX_NAME_LEN] = {0};
-        int required_ids[MAX_ITEMS] = {0}; //массив для подсчета требований рецепта
+        int required_ids[MAX_ITEMS] = {0};
         
-        //разбиваю строку, сначала вытаскиваю название до двоеточия
         char *token = strtok(line, ":");
         if (token != NULL) {
             strncpy(recipe_name, token, MAX_NAME_LEN - 1);
         }
 
-        //вытаскиваю все ID предметов, идущие через пробел после двоеточия
         token = strtok(NULL, " ");
         while (token != NULL) {
             int id = atoi(token);
@@ -295,20 +291,18 @@ void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_
             token = strtok(NULL, " ");
         }
 
-        //сравнение требований рецепта с тем, что есть в рюкзаке фермера
         int has_enough = 1;
-        char missing_report[128] = "";
+        
+        char missing_report[128] = ""; 
 
         for (int id = 0; id < MAX_ITEMS; id++) {
             if (required_ids[id] > player_resources[id]) {
                 has_enough = 0;
-                //дозапись имени компонента, которого не хватило, в строку
                 strcat(missing_report, names[id]);
                 strcat(missing_report, " ");
             }
         }
 
-        //вывод вердикта на экран и дубликат его в выходной файл output.txt
         if (has_enough) {
             printf("Рецепт '%s': [ДОСТУПНО]\n", recipe_name);
             fprintf(fout, "Рецепт '%s': [ДОСТУПНО]\n", recipe_name);
@@ -322,6 +316,10 @@ void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_
     fclose(fout);
     printf("\n[Успех]: Полный отчет о крафте сохранен в файл output.txt!\n");
 }
+
+
+   
+
 
 //функции для работы с динамической картой
 
@@ -390,6 +388,7 @@ char** generate_forest_ring(int *width, int *height, int *hero_x, int *hero_y, i
 
     return map;
 }
+
 // модуль приключения (Пункт 10)
 void action_adventure() {
     int width, height;
@@ -397,13 +396,12 @@ void action_adventure() {
     int camp_x, camp_y;
     int portal_active = 0;
     int portal_x = -1, portal_y = -1;
-    int edge_transitions = 0; // Счетчик переходов через край
+    int edge_transitions = 0; // счетчик переходов через край
 
     // первичная генерация локации
     char **map = generate_forest_ring(&width, &height, &hero_x, &hero_y, &camp_x, &camp_y, &portal_active, &portal_x, &portal_y);
     printf("[Приключение началось! Вы попали в Лес-кольцо %dx%d]\n", width, height);
 
-    char input_buf[10];
     int in_adventure = 1;
 
     while (in_adventure) {
@@ -411,9 +409,12 @@ void action_adventure() {
         display_map(map, width, height, hero_x, hero_y);
         printf("Управление (W - вверх, A - влево, S - вниз, D - вправо, Q - сбежать домой): ");
         
-        get_safe_string(input_buf, sizeof(input_buf));
-        char move = input_buf[0];
-
+        // ИСПРАВЛЕНО: Читаем символ напрямую через getchar и чистим поток за ним
+        char move = getchar();
+        if (move != '\n' && move != EOF) {
+            while (getchar() != '\n'); // выедаем остаток строки (Enter)
+        }
+        
         // перевод символа в верхний регистр
         if (move >= 'a' && move <= 'z') move -= 32;
 
@@ -421,7 +422,7 @@ void action_adventure() {
             // выход домой работает, только если стоим на костре
             if (hero_x == camp_x && hero_y == camp_y) {
                 printf("Вы погрелись у костра и благополучно вернулись на ферму!\n");
-                in_adventure = 0;
+                in_adventure = 0; // успешный выход из цикла приключения
             } else {
                 printf("Ошибка! Сбежать домой можно только находясь на клетке костра (^).\n");
             }
@@ -450,7 +451,7 @@ void action_adventure() {
             continue;
         }
 
-         // проверка на проходимость клетки
+        // проверка на проходимость клетки
         if (map[next_y][next_x] == 'T' || map[next_y][next_x] == 'R') {
             printf("Ой! Там непреодолимое препятствие (%c).\n", map[next_y][next_x]);
         } else {
@@ -475,7 +476,7 @@ void action_adventure() {
                 }
             }
 
-             // наступание на портал приводит к очистке памяти и регенерации карты
+            // наступание на портал приводит к очистке памяти и регенерации карты
             if (portal_active && hero_x == portal_x && hero_y == portal_y) {
                 printf("\nВы вошли в портал! Старый лес исчезает, вас переносит в новую чащу...\n");
                 free_map(map, height); // Полное освобождение старой динамической памяти
@@ -488,22 +489,27 @@ void action_adventure() {
         }
     }
 
-    // полная зачистка памяти при окончательном возвращении на ферму
+    // безопасно очищаем память при выходе в меню
     free_map(map, height);
     printf("[Память карты успешно освобождена. Возврат на ферму].\n");
 }
 
 
-
 // ГЛАВНАЯ ФУНКЦИЯ
 int main() {
-    setlocale(LC_ALL, "Russian");srand(time(NULL)); // настройка сида генератора случайных чисел
+    setlocale(LC_ALL, "Russian");
+    srand(time(NULL)); 
 
     char farmer_name[MAX_NAME_LEN] = "Аноним";
     char item_names[MAX_ITEMS][MAX_NAME_LEN];
-    GameTime time_tracker = {1, 8}; // переименовано во избежание конфликта с time.h
+    GameTime time_tracker = {1, 8}; 
 
     load_item_catalogue(item_names);
+    
+    // безопасный пропуск остаточных символов без двойного вызова getchar()
+
+    int ch;
+    
     int inventory[INVENTORY_SIZE] = {
         ITEM_WOOD, ITEM_EMPTY, ITEM_STONE, ITEM_SEEDS, ITEM_LEATHER,
         ITEM_GOLD, ITEM_DIAMOND, ITEM_POTION, ITEM_IRON, ITEM_WOOD
@@ -511,7 +517,6 @@ int main() {
 
     printf("\nДобро пожаловать на ферму! Введите имя вашего персонажа: ");
     get_safe_string(farmer_name, MAX_NAME_LEN);
-
 
     int choice = -1;
     do {
