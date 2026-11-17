@@ -7,19 +7,8 @@
 #include "src/game.h"
 #include "src/utils.h"
 #include "src/player.h"
+#include "src/map.h"
 
-// Пока оставим функции инвентаря здесь
-void print_inventory (const int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size) {
-    printf ("======= СОДЕРЖИМОЕ ИНВЕНТАРЯ =======\n");
-    for (int i = 0; i < size; i++) {
-        int id = inv[i];
-        if (id >= 0 && id < MAX_ITEMS) {
-            printf("Слот %d: [%d] - %s\n" , i, id, names[id]);
-        } else {
-            printf("Слот %d: [%d] - (Неизвестный предмет)\n", i, id);
-        }
-    }
-}
 
 // Заглушки для старых функций (чтобы компилировалось)
 void action_put_item(int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size) {
@@ -60,8 +49,6 @@ void display_map(char **map, int width, int height, int hero_x, int hero_y) {
         printf("\n");
     }
 }
-
-void action_adventure() { printf("Приключение (заглушка, карту сделаем на шаге 3).\n"); }
 
 
 // ГЛАВНАЯ ФУНКЦИЯ
@@ -122,8 +109,8 @@ int main() {
                 print_inventory(player->inventory, item_names, INVENTORY_SIZE); 
                 break;
             case 10: 
-                if (!player) { printf("Сначала создайте персонажа.\n"); break; }
-                action_adventure(); 
+                if (!player) printf("Сначала создайте персонажа!\n");
+                else action_adventure(player, &time_tracker, item_names); // Передаем item_names
                 break;
             case 11: 
                 printf("Завершение работы программы.\n"); 

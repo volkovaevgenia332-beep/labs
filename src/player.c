@@ -133,3 +133,16 @@ void player_eat(Player *p, const char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
         printf("В этом слоте не еда!\n");
     }
 }
+
+
+void print_inventory(const int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size) {
+    printf("======= СОДЕРЖИМОЕ ИНВЕНТАРЯ =======\n");
+    for (int i = 0; i < size; i++) {
+        int id = inv[i];
+        if (id >= 0 && id < MAX_ITEMS) {
+            printf("Слот %d: [%d] - %s\n" , i, id, names[id]);
+        } else {
+            printf("Слот %d: [%d] - (Неизвестный предмет)\n", i, id);
+        }
+    }
+}

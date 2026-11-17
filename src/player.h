@@ -30,3 +30,5 @@ void player_update_hunger(Player *p, int hours_passed, int steps_passed);
 void player_eat(Player *p, const char item_names[MAX_ITEMS][MAX_NAME_LEN]);
 
 #endif // PLAYER_H
+
+void print_inventory(const int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size);
