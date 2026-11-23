@@ -3,9 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// Математика по модулю
-int wrap_forward(int coord, int size) { return (coord + 1) % size; }
-int wrap_backward(int coord, int size) { return (coord - 1 + size) % size; }
+// Математика по модулю (тор)
+int wrap_forward(int coord, int size) { 
+    return (coord + 1) % size; 
+}
+
+int wrap_backward(int coord, int size) { 
+    return (coord - 1 + size) % size; 
+}
 
 MoveResult map_calc_next_position(int hero_x, int hero_y, int width, int height, char move) {
     MoveResult res = { hero_x, hero_y, 0, 1 };
@@ -77,20 +82,18 @@ void map_display(const Map *m) {
 
 // Главная функция приключения
 void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
-    // Проверки допуска
     if (p->stamina <= 0) { printf("Ошибка: у вас нет выносливости для похода!\n"); return; }
-    if (t->hour == NIGHT_HOUR) { printf("Ошибка: ночью (02:00) все спят, поход невозможен!\n"); return; }
+    if (t->hour == NIGHT_HOUR) { printf("Ошибка: ночью (02:00) все спят!\n"); return; }
 
     Map *m = map_generate(1);
-    int total_steps = 0;
     int in_adventure = 1;
 
     printf("\n[Приключение началось! Этаж %d, размер %dx%d]\n", m->floor, m->width, m->height);
 
     while (in_adventure) {
-        // HUD (Интерфейс)
         printf("\n--------------------------------------------------\n");
-        printf("HP: %d/%d | Выносливость: %d/%d | Сытость: %d\n", p->hp, p->max_hp, p->stamina, p->max_stamina, p->hunger);
+        printf("HP: %d/%d | Выносливость: %d/%d | Сытость: %d/%d\n", 
+               p->hp, p->max_hp, p->stamina, p->max_stamina, p->hunger, MAX_HUNGER);
         printf("Золото: %d | Этаж: %d | Время: %02d:00\n", p->gold, m->floor, t->hour);
         printf("--------------------------------------------------\n");
         
@@ -111,8 +114,9 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             continue;
         }
 
+        // Кнопка поедания еды (Вариант)
         if (move == 'E') {
-            player_eat(p, item_names);  
+            player_eat(p, item_names);
             continue;
         }
 
@@ -124,12 +128,12 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             continue;
         }
 
-        // Движение
         m->hero_x = r.x;
         m->hero_y = r.y;
-        total_steps++;
+        
+        // Тратим стамину и голод за шаг
         p->stamina -= STEP_STAMINA_COST;
-        player_update_hunger(p, 0, 1); // Голод падает за шаги
+        player_update_hunger(p, 0, 1); 
 
         if (r.crossed_edge) {
             m->edge_transitions++;
@@ -143,15 +147,14 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             }
         }
 
-        // Вход в портал (новый этаж)
         if (m->portal_active && m->hero_x == m->portal_x && m->hero_y == m->portal_y) {
             printf("\n[Вы перешли на новый этаж!]\n");
             p->stamina -= FLOOR_STAMINA_COST;
             t->hour += FLOOR_TIME_COST;
+            
             if (t->hour >= HOURS_IN_DAY) { t->hour %= HOURS_IN_DAY; t->day++; }
-            player_update_hunger(p, FLOOR_TIME_COST, 0);
+            player_update_hunger(p, FLOOR_TIME_COST, 0); // Голод падает за час
 
-            // Награда
             int reward = BASE_GOLD_REWARD * m->floor;
             p->gold += reward;
             printf("[Награда: +%d золота]\n", reward);
@@ -161,7 +164,7 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             m = map_generate(next_floor);
         }
 
-        // Экстренная эвакуация (обморок)
+        // Обморок (экстренная эвакуация)
         if (p->stamina <= 0 || t->hour == NIGHT_HOUR || p->hp <= 0) {
             printf("\n[ОБМОРОК! Вы потеряли сознание...]\n");
             int lost_gold = p->gold / 2;
@@ -170,6 +173,5 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             in_adventure = 0;
         }
     }
-
     map_destroy(m);
 }
