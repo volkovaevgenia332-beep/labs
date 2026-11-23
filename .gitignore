@@ -1,25 +1,36 @@
-# Папка настроек VS Code
-.vscode/
 
-# Файлы компиляции (Windows, Linux, macOS)
+# 1. Файлы сборки и исполняемые файлы
+
 *.exe
 *.out
 *.o
 *.obj
 *.dSYM/
-main
 game
-farm
-build/
-cmake-build-*/
+main
 
-# Данные, которые создаются программой (их не коммитим!)
+
+# 2. Папки IDE и системный мусор
+
+.vscode/
+.vs/
+*.code-workspace
+.DS_Store
+Thumbs.db
+
+
+# 3. Данные, создаваемые программой
+
+
 data/diary.txt
 data/output.txt
 
-# Файлы данных в корне (они теперь должны лежать в папке data/)
-items.txt
-input.txt
+# На случай, если старые файлы остались в корне
 diary.txt
 output.txt
-*.code-workspace
+
+
+# 4. Прочее
+
+build/
+cmake-build-*/
