@@ -17,9 +17,16 @@ typedef struct {
     int max_stamina;
     int gold;
     int hunger;
+    
+    
+    int attack;     // Сила удара
+    int defense;    // Защита
+    int crit_chance;  // Шанс крита (для варианта)
+    
     int x, y;
     int inventory[INVENTORY_SIZE];
 } Player;
+
 
 extern Food food_db[MAX_ITEMS];
 

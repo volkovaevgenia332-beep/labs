@@ -30,6 +30,9 @@ Player* player_create(void) {
     p->hunger = START_HUNGER;
     p->x = 0;
     p->y = 0;
+    p->attack = 5;
+    p->defense = 2;
+    p->crit_chance = 15; // 15% шанс крита
 
     // Выдаём стартовый инвентарь
     int start_inv[INVENTORY_SIZE] = {
