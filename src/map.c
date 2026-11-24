@@ -94,16 +94,18 @@ Map* map_generate(int floor) {
     return m;
 }
 
-// Удаление карты (с выводом адресов по заданию)
+// Удаление карты (с выводом адресов)
 void map_destroy(Map *m) {
     if (!m) return;
     for (int i = 0; i < m->height; i++) free(m->grid[i]);
     free(m->grid);
     
+    // ОЧИСТКА СУЩНОСТЕЙ 
     if (m->entities) {
         printf("Память массива сущностей по адресу %p освобождена\n", (void*)m->entities);
         free(m->entities);
     }
+    
     printf("Память структуры карты по адресу %p освобождена\n", (void*)m);
     free(m);
 }
@@ -121,54 +123,68 @@ void map_display(const Map *m) {
 
 
 // Логика движения монстров и дичи (Вариант 4)
-void map_update_entities(Map *m, Player *p) {
+void map_update_entities(Map *m, int hero_x, int hero_y) {
     for (int i = 0; i < m->entity_count; i++) {
         Entity *e = &m->entities[i];
         if (!e->is_alive) continue;
 
-        // Если это кролик (r)
+        // --- ВАРИАНТ 4: ПУГЛИВАЯ ДИЧЬ (КРОЛИК) ---
         if (e->type == ENT_ANIMAL) {
-            int dist_x = abs(e->x - p->x);
-            int dist_y = abs(e->y - p->y);
+            // Считаем расстояние от кролика до героя
+            int dist_x = abs(e->x - hero_x);
+            int dist_y = abs(e->y - hero_y);
             
-            // Если герой в радиусе 3 клеток, кролик убегает
+            // Если герой в радиусе 3 клеток — кролик пугается и бежит
             if (dist_x <= 3 && dist_y <= 3) {
-                int new_x = e->x, new_y = e->y;
+                int new_x = e->x;
+                int new_y = e->y;
+
+                // Выбираем, в какую сторону бежать (по X или по Y)
+                // Если по X расстояние больше, бежим по X, иначе по Y
                 if (dist_x > dist_y) {
-                    new_x += (e->x > p->x) ? 1 : -1; // Бежим по X
+                    new_x += (e->x > hero_x) ? 1 : -1; 
                 } else {
-                    new_y += (e->y > p->y) ? 1 : -1; // Бежим по Y
+                    new_y += (e->y > hero_y) ? 1 : -1;
                 }
-                
-                // Проверка, что кролик не выходит за границы и не бежит в стену/другую сущность
+
+                // Проверяем, можно ли сделать шаг (не выходим за границы и не в стену)
                 if (new_x >= 0 && new_x < m->width && new_y >= 0 && new_y < m->height) {
                     if (m->grid[new_y][new_x] == CELL_EMPTY) {
-                        m->grid[e->y][e->x] = CELL_EMPTY; // Стереть старый след
-                        e->x = new_x;
+                        // Стираем кролика со старого места
+                        m->grid[e->y][e->x] = CELL_EMPTY; 
+                        // Переносим координаты
+                        e->x = new_x; 
                         e->y = new_y;
-                        m->grid[e->y][e->x] = e->symbol; // Нарисовать на новом месте
+                        // Рисуем на новом месте
+                        m->grid[e->y][e->x] = e->symbol; 
                     }
                 }
             }
         }
-        // Если это монстр (M) — он просто патрулирует (бродит)
+        // --- МОНСТРЫ (БЛУЖДАНИЕ) ---
         else if (e->type == ENT_MONSTER) {
+            // Монстр делает случайный шаг в одну из 4 сторон
             int dir = rand() % 4;
-            int nx = e->x, ny = e->y;
-            if (dir == 0) ny--; else if (dir == 1) ny++;
-            else if (dir == 2) nx--; else if (dir == 3) nx++;
+            int nx = e->x;
+            int ny = e->y;
+            
+            if (dir == 0) ny--;      // Вверх
+            else if (dir == 1) ny++; // Вниз
+            else if (dir == 2) nx--; // Влево
+            else if (dir == 3) nx++; // Вправо
 
+            // Проверка границ и пустой клетки
             if (nx >= 0 && nx < m->width && ny >= 0 && ny < m->height) {
                 if (m->grid[ny][nx] == CELL_EMPTY) {
                     m->grid[e->y][e->x] = CELL_EMPTY;
-                    e->x = nx; e->y = ny;
+                    e->x = nx; 
+                    e->y = ny;
                     m->grid[e->y][e->x] = e->symbol;
                 }
             }
         }
     }
 }
-
 
 void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][MAX_NAME_LEN]) {
     if (p->stamina <= 0) { printf("Ошибка: нет выносливости!\n"); return; }
@@ -182,6 +198,8 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
 
     while (in_adventure) {
         // --- ФАЗА 3: RENDER (Отрисовка) ---
+        printf("\033[2J\033[H"); // Очистка экрана 
+        printf("\n--------------------------------------------------\n");
         printf("\n--------------------------------------------------\n");
         printf("HP: %d/%d | Сила: %d | Вын: %d/%d | Сытость: %d\n", p->hp, p->max_hp, p->attack, p->stamina, p->max_stamina, p->hunger);
         printf("Золото: %d | Этаж: %d | Время: %02d:00\n", p->gold, m->floor, t->hour);
@@ -303,7 +321,7 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
         }
 
         // Движение монстров (Вариант 4)
-        map_update_entities(m, p);
+        map_update_entities(m, m->hero_x, m->hero_y);
 
         // Проверки на смерть/обморок
         if (p->hp <= 0 || p->stamina <= 0) {
