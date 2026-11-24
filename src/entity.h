@@ -27,4 +27,9 @@ typedef struct {
     int dodge_chance;   // Шанс уклонения в %
 } Entity;
 
+
+// Прототипы функций для работы с сущностями
+Entity* entity_get_at(Entity *entities, int count, int x, int y);
+void entity_kill(Entity *e);
+
 #endif // ENTITY_H
