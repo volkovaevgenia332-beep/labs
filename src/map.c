@@ -176,6 +176,8 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
 
     Map *m = map_generate(1);
     int in_adventure = 1;
+    int total_resources_gathered = 0;
+    int total_monsters_killed = 0;
     char last_event[128] = "Вы вошли в лес...";
 
     while (in_adventure) {
@@ -233,6 +235,7 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
                 if (target->hp <= 0) {
                     entity_kill(target);
                     m->grid[target->y][target->x] = CELL_EMPTY; // Убираем с карты
+                    total_resources_gathered++;
                     
                     // Пытаемся положить в инвентарь
                     int slot = -1;
@@ -265,6 +268,7 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
                 if (target->hp <= 0) {
                     entity_kill(target);
                     m->grid[target->y][target->x] = CELL_EMPTY;
+                    total_monsters_killed++;
                     p->gold += 10 * m->floor; // Награда
                     snprintf(last_event, sizeof(last_event), "Монстр повержен! +%d золота.", 10 * m->floor);
                 } else {
@@ -309,5 +313,9 @@ void action_adventure(Player *p, GameTime *t, const char item_names[MAX_ITEMS][M
             in_adventure = 0;
         }
     }
-    map_destroy(m);
+    // Записываем отчет в дневник перед выходом
+    action_save_adventure_report(*t, m->floor, total_resources_gathered, total_monsters_killed);
+    
+    map_destroy(m); // Очистка памяти
 }
+

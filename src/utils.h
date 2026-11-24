@@ -24,4 +24,7 @@ void action_check_recipes(const int inv[],
                           const char names[MAX_ITEMS][MAX_NAME_LEN],
                           int size);
 
+
+
+void action_save_adventure_report(GameTime t, int floor, int resources, int monsters);                        
 #endif // UTILS_H

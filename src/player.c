@@ -149,6 +149,7 @@ void print_inventory(const int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN],
     }
 }
 
+
 void action_put_item(int inv[], const char names[MAX_ITEMS][MAX_NAME_LEN], int size) {
     printf("Введите индекс слота (от 0 до %d): ", size - 1);
     int slot = get_safe_int();

@@ -169,3 +169,22 @@ void action_check_recipes(const int inv[], const char names[MAX_ITEMS][MAX_NAME_
     fclose(fout);
     printf("\n[Успех]: Полный отчет о крафте сохранен в файл data/output.txt!\n");
 }
+
+
+void action_save_adventure_report(GameTime t, int floor, int resources, int monsters) {
+    FILE *file = fopen("data/diary.txt", "a"); // "a" — режим дозаписи
+    if (file == NULL) {
+        printf("[Ошибка]: Не удалось открыть data/diary.txt для записи отчета.\n");
+        return;
+    }
+    
+    fprintf(file, "=== ОТЧЕТ О ПОХОДЕ ===\n");
+    fprintf(file, "Время окончания: День %d, %02d:00\n", t.day, t.hour);
+    fprintf(file, "Достигнутый этаж: %d\n", floor);
+    fprintf(file, "Добыто ресурсов: %d\n", resources);
+    fprintf(file, "Побеждено монстров: %d\n", monsters);
+    fprintf(file, "----------------------\n\n");
+    
+    fclose(file);
+    printf("[Успех]: Отчет о походе сохранен в data/diary.txt!\n");
+}
